@@ -210,8 +210,6 @@ print(instance)
 
 # ---
 
-mapper = class_mapper(User)
-
 with engine.connect() as db:
     row_result = db.execute(sa.select(User).filter_by(id=1))
 
