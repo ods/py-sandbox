@@ -183,8 +183,11 @@ with Session(engine) as session:
 # )
 # kwargs={}
 
+###############################################################################
+# Results
+
 # ---
-# Create instance from row
+# Create instance from Row (almost)
 
 mapper = class_mapper(User)
 
@@ -193,6 +196,8 @@ with engine.connect() as db:
     row = result.fetchone()
 
 # Based on sqlalchemy/orm/loading.py(1329)_populate_full
+# NB: Row alone is not enough, as some useful information is in the
+# CompileState of the query
 context: ExecutionContext = result.context
 assert context.compiled is not None
 compile_state: ORMSelectCompileState = context.compiled.compile_state
@@ -209,13 +214,14 @@ for prop, col in quick_populators.items():
 print(instance)
 
 # ---
+# Create instance from CursorResult
 
 with engine.connect() as db:
     row_result = db.execute(sa.select(User).filter_by(id=1))
 
     query_context = QueryContext(
-        compile_state=result.context.compiled.compile_state,
-        statement=result.context.invoked_statement,
+        compile_state=row_result.context.compiled.compile_state,
+        statement=row_result.context.invoked_statement,
         params={},  # XXX
         session=Session(),
         load_options=QueryContext.default_load_options,
